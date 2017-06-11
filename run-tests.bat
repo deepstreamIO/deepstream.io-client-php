@@ -1,0 +1,1 @@
+php C:\dev\ds-http-test\php\phpunit.phar --bootstrap src\deepstream-client.php test\client-test.php
