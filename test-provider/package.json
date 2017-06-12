@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "deepstream.io-client-js": "^2.2.1"
+  }
+}
