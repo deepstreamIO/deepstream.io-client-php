@@ -98,4 +98,17 @@ final class ClientTest extends TestCase
         $this->assertEquals( $response[ 0 ]->name, 'test-event' );
         $this->assertEquals( $response[ 0 ]->data, 'some-data' );
     }
+    
+    public function testRunsBatchRequest()
+    {
+        $client = new DeepstreamClient( API_URL );
+        $client->startBatch();
+        $this->assertEquals( $client->makeRpc( 'times-two', 11 ), true );
+        $this->assertEquals( $client->makeRpc( 'times-two', 45 ), true );
+        $response = $client->executeBatch();
+        $this->assertEquals( $response->result, 'SUCCESS' );
+        $this->assertEquals( count($response->body), 2 );
+        $this->assertEquals( $response->body[0]->data, 22 );
+        $this->assertEquals( $response->body[1]->data, 90 );
+    }
 }
