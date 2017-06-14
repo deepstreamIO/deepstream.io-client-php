@@ -44,3 +44,79 @@ php phpunit-6.2.1.phar --bootstrap src\deepstream-client.php test\client-test.ph
 
 If it all works it looks like this
 ![Screenshot](screenshot.png)
+
+## API
+
+### `new DeepstreamClient( $url, $authData )`
+Creates the deepstream client
+```php
+$client = new DeepstreamClient( 'https://api.deepstreamhub.com/api/v1', array(
+    'token' => 'xxxx-xxxx-xxxx-xxxx'
+))
+```
+
+### `setRecord( $recordName, [$path], $data )`
+Writes full or partial data to a record
+```php
+    # Writing full data
+    $client->setRecord( 'user/johndoe', array(
+        'firstname' => 'John',
+        'lastname' => 'Doe',
+        'age' => 32,
+        'pets' => array( 'hamster', 'cat' )
+    ));
+
+    # Writing partial data
+    $client->setRecord( 'user/johndoe', 'age', '33' );
+```
+
+### `$client->getRecord( $recordName )`
+Reads the data for a given record
+```php
+    $firstname = $client->getRecord( 'user/johndoe' )->firstname;
+```
+
+### `$client->deleteRecord( $recordName )`
+Deletes a record
+```php
+    $client->deleteRecord( 'user/johndoe' );
+```
+
+### `$client->getRecordVersion( $recordName )`
+Retrieves the current version of a record
+```php
+    $version = $client->getRecordVersion( 'user/johndoe' );
+```
+
+### `$client->makeRpc( $rpcName, [$data] )`
+Executes a Remote Procedure Call
+```php
+    #with data
+    $twentyfour = $client->makeRpc( 'multiply-by-two', 12 );
+
+    #without data
+    $client->makeRpc( 'logout' );
+```
+
+### `$client->emitEvent( $eventName, [$data] )`
+Emits an event
+```php
+    #with data
+    $client->emitEvent( 'new-message', 'hey, what\'s up?' );
+
+    #without data
+    $client->emitEvent( 'ping' );
+```
+
+### `$client->startBatch()`
+Starts a set of batch operations that will be executed as a single request
+
+### `$client->executeBatch()`
+Executes an existing set of batch operations
+```php
+    $client->startBatch()
+    $client->emitEvent( 'new-message', 'hey, what\'s up?' );
+    $client->getRecord( 'user/johndoe' );
+    $client->setRecord( 'user/mike', 'age', 12 );
+    $client->executeBatch();
+```

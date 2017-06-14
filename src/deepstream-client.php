@@ -5,7 +5,7 @@ define( 'SUCCESS_RESPONSE', 'SUCCESS' );
 /**
  * The deepstream PHP client running against the dsh/dsx
  * HTTP API
- * 
+ *
  * @author deepstreamHub GmbH <info@deepstreamhub.com>
  * @copyright (c) 2017, deepstreamHub GmbH
  */
@@ -16,10 +16,10 @@ class DeepstreamClient {
 
     /**
      * Constructs the client
-     * 
+     *
      * @param string $url HTTP(S) URL for a deepstream endpoint
      * @param mixed $authData any authentication information
-     * 
+     *
      * @public
      * @return void
      */
@@ -31,17 +31,17 @@ class DeepstreamClient {
     /**
      * Initiates a set of batch operations. No actual request
      * will be sent until executeBatch is called
-     * 
+     *
      * @public
      * @return void
      */
     public function startBatch() {
         $this->batchApiRequest = new ApiRequest( $this->url, $this->authData );
     }
-    
+
     /**
      * Executes a set of batch operations
-     * 
+     *
      * @public
      * @return Object result
      */
@@ -54,9 +54,9 @@ class DeepstreamClient {
 
     /**
      * Retrieves data for a single record
-     * 
+     *
      * @param string $recordName
-     * 
+     *
      * @public
      * @return mixed response data
      */
@@ -67,7 +67,7 @@ class DeepstreamClient {
                 'action' => 'read',
                 'recordName' => $recordName
         ));
-        
+
         if( $this->hasBatch() ) {
             return true;
         }
@@ -82,11 +82,11 @@ class DeepstreamClient {
     /**
      * Updates a records data. Can be called with a path
      * for partial updates
-     * 
+     *
      * @param string recordName
      * @param string path optional path
      * @param mixed data
-     * 
+     *
      * @return boolean
      */
     public function setRecord() {
@@ -114,10 +114,10 @@ class DeepstreamClient {
 
     /**
      * Executes a Remote Procedure Call
-     * 
+     *
      * @param string rpcName
      * @param mixed data optional
-     * 
+     *
      * @public
      * @return mixed response data
      */
@@ -136,11 +136,11 @@ class DeepstreamClient {
         }
 
         $apiRequest->add($requestData);
-        
+
         if( $this->hasBatch() ) {
             return true;
         }
-        
+
         $response = $apiRequest->execute();
 
         if( $response->result === SUCCESS_RESPONSE ) {
@@ -152,10 +152,10 @@ class DeepstreamClient {
 
     /**
      * Emits a deepstream event
-     * 
+     *
      * @param string eventName
      * @param mixed data optional
-     * 
+     *
      * @public
      * @return boolean success
      */
@@ -184,9 +184,9 @@ class DeepstreamClient {
 
     /**
      * Returns the current version for a record
-     * 
+     *
      * @param type $recordName
-     * 
+     *
      * @public
      * @return mixed the version of the record
      */
@@ -205,9 +205,9 @@ class DeepstreamClient {
 
     /**
      * Deletes a record
-     * 
+     *
      * @param type $recordName
-     * 
+     *
      * @public
      * @return boolean
      */
@@ -233,19 +233,19 @@ class DeepstreamClient {
 //        ));
 //        return ($apiRequest->execute() );
 //    }
-    
+
     /**
      * Check if a batch operation is in progress
-     * 
+     *
      * @return boolean
      */
     private function hasBatch() {
         return ($this->batchApiRequest !== null );
     }
-    
+
     /**
      * Returns a new API request or an existing one if a batch is in progress
-     * 
+     *
      * @return \ApiRequest
      */
     private function getApiRequest() {
