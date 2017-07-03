@@ -1,5 +1,7 @@
 <?php
-include 'api-request.php';
+namespace Deepstreamhub;
+
+include 'ApiRequest.php';
 define( 'SUCCESS_RESPONSE', 'SUCCESS' );
 
 /**
