@@ -10,7 +10,7 @@ Running the tests is a bit trickier as it requires a two-node deepstream cluster
 - Add the folder with the executables (e.g. php.exe, php-cli.exe) to your path
 - Download PHP Unit from [https://phpunit.de/](https://phpunit.de/)
 - Move the `phpunit-6.2.1.phar` file to your `deepstream.io-client-php` folder
-- Make it executable via 
+- Make it executable via
 ```bash
 chmod +x phpunit.phar
 ```
@@ -20,7 +20,7 @@ chmod +x phpunit.phar
 - install the plugin via `yarn install`
 - copy the configs in `ds-conf` into your deepstream's conf directory
 - install the redis msg connector using `./deepstream.exe install msg redis`
-- start two deepstream instances with 
+- start two deepstream instances with
  ```bash
  ./deepstream.exe start -c conf/config-http.yml
  ```
@@ -39,7 +39,7 @@ node test-provider.js
 ```
 - run the tests using
 ```
-php phpunit-6.2.1.phar --bootstrap src\deepstream-client.php test\client-test.php
+php phpunit-6.2.1.phar --bootstrap src\DeepstreamClient.php test\client-test.php
 ```
 
 If it all works it looks like this
