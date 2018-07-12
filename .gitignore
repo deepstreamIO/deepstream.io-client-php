@@ -1,2 +1,3 @@
 test-provider/node_modules/
 phpunit*
+vendor

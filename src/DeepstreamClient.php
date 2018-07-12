@@ -1,8 +1,7 @@
 <?php
 namespace Deepstreamhub;
 
-include 'ApiRequest.php';
-define( 'SUCCESS_RESPONSE', 'SUCCESS' );
+use \Deepstreamhub\Exceptions\NoBatchInstanceException;
 
 /**
  * The deepstream PHP client running against the dsh/dsx
@@ -11,8 +10,20 @@ define( 'SUCCESS_RESPONSE', 'SUCCESS' );
  * @author deepstreamHub GmbH <info@deepstreamhub.com>
  * @copyright (c) 2017, deepstreamHub GmbH
  */
-class DeepstreamClient {
+class DeepstreamClient
+{
+    const SUCCESS_RESPONSE = 'SUCCESS';
 
+    const ACTION_DELETE = 'delete';
+    const ACTION_WRITE = 'write';
+    const ACTION_MAKE = 'make';
+    const ACTION_EMIT = 'emit';
+    const ACTION_READ = 'read';
+    
+    const TOPIC_TYPE_RECORD = 'record';
+    const TOPIC_TYPE_RPC = 'rpc';
+    const TOPIC_TYPE_EVENT = 'event';
+    
     private $url;
     private $batchApiRequest = null;
 
@@ -25,7 +36,8 @@ class DeepstreamClient {
      * @public
      * @return void
      */
-    public function __construct( $url, $authData ) {
+    public function __construct($url, $authData)
+    {
         $this->url = $url;
         $this->authData = $authData;
     }
@@ -37,8 +49,9 @@ class DeepstreamClient {
      * @public
      * @return void
      */
-    public function startBatch() {
-        $this->batchApiRequest = new ApiRequest( $this->url, $this->authData );
+    public function startBatch()
+    {
+        $this->batchApiRequest = new ApiRequest($this->url, $this->authData);
     }
 
     /**
@@ -47,10 +60,12 @@ class DeepstreamClient {
      * @public
      * @return Object result
      */
-    public function executeBatch() {
-        if( $this->hasBatch() === false ) {
-            trigger_error( 'no batch found, call startBatch first' );
+    public function executeBatch()
+    {
+        if($this->hasBatch() === false) {
+            throw new NoBatchInstanceException;
         }
+
         return $this->batchApiRequest->execute();
     }
 
@@ -62,23 +77,26 @@ class DeepstreamClient {
      * @public
      * @return mixed response data
      */
-    public function getRecord( $recordName ) {
+    public function getRecord($recordName)
+    {
         $apiRequest = $this->getApiRequest();
-        $apiRequest->add(array(
-                'topic' => 'record',
-                'action' => 'read',
-                'recordName' => $recordName
-        ));
+        $apiRequest->add([
+            'topic' => self::TOPIC_TYPE_RECORD,
+            'action' => self::ACTION_READ,
+            'recordName' => $recordName
+        ]);
 
-        if( $this->hasBatch() ) {
+        if($this->hasBatch()) {
             return true;
         }
+
         $result = $apiRequest->execute();
-        if( $result->result === SUCCESS_RESPONSE ) {
+        
+        if($this->isSuccessful($result->result)) {
             return $result->body[0]->data;
-        } else {
-            return false;
         }
+
+        return false;
     }
 
     /**
@@ -91,27 +109,28 @@ class DeepstreamClient {
      *
      * @return boolean
      */
-    public function setRecord() {
+    public function setRecord()
+    {
         $apiRequest = $this->getApiRequest();
-        $requestData = array(
-            'topic' => 'record',
-            'action' => 'write',
-            'recordName' => func_get_arg( 0 ),
-        );
+        $requestData = [
+            'topic' => self::TOPIC_TYPE_RECORD,
+            'action' => self::ACTION_WRITE,
+            'recordName' => func_get_arg(0),
+        ];
 
-        if( func_num_args() === 2 ) {
-            $requestData['data'] = func_get_arg( 1 );
+        if( func_num_args() === 2) {
+            $requestData['data'] = func_get_arg(1);
         }
-        else if(func_num_args() === 3 ) {
-            $requestData['path'] = func_get_arg( 1 );
-            $requestData['data'] = func_get_arg( 2 );
+        else if(func_num_args() === 3) {
+            $requestData['path'] = func_get_arg(1);
+            $requestData['data'] = func_get_arg(2);
         }
 
         $apiRequest->add($requestData);
         if( $this->hasBatch() ) {
             return true;
         }
-        return ($apiRequest->execute()->result ===SUCCESS_RESPONSE );
+        return $this->isSuccessful($apiRequest->execute()->result);
     }
 
     /**
@@ -123,33 +142,34 @@ class DeepstreamClient {
      * @public
      * @return mixed response data
      */
-    public function makeRpc() {
+    public function makeRpc()
+    {
         $apiRequest = $this->getApiRequest();
-        $requestData = array(
-            'topic' => 'rpc',
-            'action' => 'make',
-            'rpcName' => func_get_arg( 0 )
-        );
+        $requestData = [
+            'topic' => self::TOPIC_TYPE_RPC,
+            'action' => self::ACTION_MAKE,
+            'rpcName' => func_get_arg(0)
+        ];
 
-        if(func_num_args() === 2 ) {
+        $requestData['data'] = null;
+
+        if(func_num_args() === 2) {
             $requestData['data'] = func_get_arg(1);
-        } else {
-            $requestData['data'] = null;
         }
 
         $apiRequest->add($requestData);
 
-        if( $this->hasBatch() ) {
+        if($this->hasBatch()) {
             return true;
         }
 
         $response = $apiRequest->execute();
 
-        if( $response->result === SUCCESS_RESPONSE ) {
+        if($this->isSuccessful($response->result)) {
             return $response->body[0]->data;
-        } else {
-            return false;
         }
+        
+        return false;
     }
 
     /**
@@ -161,27 +181,29 @@ class DeepstreamClient {
      * @public
      * @return boolean success
      */
-    public function emitEvent() {
+    public function emitEvent()
+    {
         $apiRequest = $this->getApiRequest();
-        $requestData = array(
-            'topic' => 'event',
-            'action' => 'emit',
-            'eventName' => func_get_arg( 0 )
-        );
-
-        if(func_num_args() === 2 ) {
+        $requestData = [
+            'topic' => self::TOPIC_TYPE_EVENT,
+            'action' => self::ACTION_EMIT,
+            'eventName' => func_get_arg(0)
+        ];
+        
+        $requestData['data'] = null;
+        if(func_num_args() === 2) {
             $requestData['data'] = func_get_arg(1);
-        } else {
-            $requestData['data'] = null;
         }
 
         $apiRequest->add($requestData);
-        if( $this->hasBatch() ) {
+      
+        if($this->hasBatch()) {
             return true;
         }
+      
         $response = $apiRequest->execute();
 
-        return ( $response->result === SUCCESS_RESPONSE );
+        return $this->isSuccessful($response->result);
     }
 
     /**
@@ -192,16 +214,19 @@ class DeepstreamClient {
      * @public
      * @return mixed the version of the record
      */
-    public function getRecordVersion( $recordName ) {
+    public function getRecordVersion($recordName)
+    {
         $apiRequest = $this->getApiRequest();
-        $apiRequest->add(array(
-                'topic' => 'record',
-                'action' => 'read',
-                'recordName' => $recordName
-        ));
-        if( $this->hasBatch() ) {
+        $apiRequest->add([
+            'topic' => self::TOPIC_TYPE_RECORD,
+            'action' => self::ACTION_READ,
+            'recordName' => $recordName
+        ]);
+
+        if($this->hasBatch()) {
             return true;
         }
+
         return $apiRequest->execute()->body[0]->version;
     }
 
@@ -213,36 +238,30 @@ class DeepstreamClient {
      * @public
      * @return boolean
      */
-    public function deleteRecord( $recordName ) {
+    public function deleteRecord($recordName)
+    {
         $apiRequest = $this->getApiRequest();
-        $apiRequest->add(array(
-                'topic' => 'record',
-                'action' => 'delete',
-                'recordName' => $recordName
-        ));
-        if( $this->hasBatch()) {
+        $apiRequest->add([
+            'topic' => self::TOPIC_TYPE_RECORD,
+            'action' => self::ACTION_DELETE,
+            'recordName' => $recordName
+        ]);
+
+        if($this->hasBatch()) {
             return true;
         }
-        return ($apiRequest->execute()->result === SUCCESS_RESPONSE );
-    }
 
-//    TODO
-//    public function getPresence() {
-//        $apiRequest = new ApiRequest( $this->url );
-//        $apiRequest->add(array(
-//                'topic' => 'presence',
-//                'action' => 'query'
-//        ));
-//        return ($apiRequest->execute() );
-//    }
+        return $this->isSuccessful($apiRequest->execute()->result);
+    }
 
     /**
      * Check if a batch operation is in progress
      *
      * @return boolean
      */
-    private function hasBatch() {
-        return ($this->batchApiRequest !== null );
+    private function hasBatch()
+    {
+        return $this->batchApiRequest !== null;
     }
 
     /**
@@ -250,11 +269,32 @@ class DeepstreamClient {
      *
      * @return \ApiRequest
      */
-    private function getApiRequest() {
-        if( $this->hasBatch() ) {
+    private function getApiRequest()
+    {
+        if($this->hasBatch()) {
             return $this->batchApiRequest;
-        } else {
-            return new ApiRequest( $this->url, $this->authData );
         }
+
+        return new ApiRequest($this->url, $this->authData);
+    }
+
+    /**
+     * Check is response successfuly
+     * 
+     * @return boolean
+     */
+    private function isSuccessful($result)
+    {
+        return $result === self::SUCCESS_RESPONSE;
+    }
+
+    /**
+     * Returns Batch Api Request object
+     * 
+     * @return \ApiRequest
+     */
+    public function getBatchApiRequest()
+    {
+        return $this->batchApiRequest;
     }
 }
