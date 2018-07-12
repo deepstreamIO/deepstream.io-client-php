@@ -50,10 +50,10 @@ class ApiRequest
     {
         $options = [
             'http' => [
-                'Header'  => "Content-type: application/json\r\n",
-                'Method'  => 'POST',
-                'Content' => json_encode($this->requestData, JSON_UNESCAPED_SLASHES),
-                'Keep-Alive' => 'timeout=5, max=1000'
+                'header'  => "Content-type: application/json\r\n",
+                'method'  => 'POST',
+                'content' => json_encode($this->requestData, JSON_UNESCAPED_SLASHES),
+                'keep-alive' => 'timeout=5, max=1000'
             ]
         ];
 
