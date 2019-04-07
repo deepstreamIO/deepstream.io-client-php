@@ -1,4 +1,7 @@
 # deepstream.io-client-php
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/deepstreamIO/deepstream.io-client-php.svg)](https://greenkeeper.io/)
+
 PHP Client using the dsh HTTP API
 
 # Installing & running tests
