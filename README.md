@@ -1,3 +1,7 @@
+# LOOKING FOR MAINTAINER
+
+This library is no longer being maintained by deepstream core. Looking for a maintainer we can transfer this to, or add contributor rights to.
+
 # deepstream.io-client-php
 PHP Client using the dsh HTTP API
 
